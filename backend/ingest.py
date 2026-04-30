@@ -14,9 +14,9 @@ for loader in loaders:
     docs.extend(loader.load())
 
 splitter = RecursiveCharacterTextSplitter(
-    chunk_size=400,
-    chunk_overlap=80,
-    separators=["\n", "\n\n", "Pasal", "Ayat", " ", ""]
+    chunk_size=1000,
+    chunk_overlap=200,
+    separators=["\n", "\n\n", " ", ""]
 )
 
 chunks = splitter.split_documents(docs)
