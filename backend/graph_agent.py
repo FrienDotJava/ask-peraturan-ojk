@@ -55,6 +55,26 @@ def retrieve_local(state: AgentState):
     return {"retrieved_docs": docs}
 
 
+def grade_documents(state: AgentState):
+    doc_contents = [d.page_content for d in state["retrieved_docs"]]
+    grade_prompt = f"""
+Pertanyaan: {state["question"]}
+Dokumen yang ditemukan: {doc_contents}
+
+Apakah dokumen ini cukup relevan untuk menjawab pertanyaan tersebut?
+Jawab HANYA dengan "yes" atau "no", tanpa penjelasan lain.
+"""
+    grade = model.invoke(grade_prompt).content.strip().lower()
+    needs_web = "yes" not in grade # if "yes", no need for web search
+    return {"needs_web": needs_web}
+
+
+def web_search(state: AgentState):
+    if state["needs_web"]:
+        web = TavilySearchResults(k=3)
+        results = web.invoke(state['question'])
+        return {"web_results": results}
+    return {"web_results": ""}
 
 
 SYSTEM_PROMPT = """
@@ -70,10 +90,30 @@ Selalu sebutkan sumber:
 - Nama dokumen (Contoh: PERATURAN OTORITAS JASA KEUANGAN NOMOR 13 /POJK.05/2014 Tentang Penyelenggaraan Usaha Lembaga Keuangan Mikro)
 - Pasal (Contoh: Pasal 1)
 - Poin/Ayat (Contoh: 1 atau (1))
-
-Konteks: 
-{context}
 """
+
+def generate_answer(state: AgentState):
+    context_parts = []
+    for doc in state["retrieved_docs"]:
+        source = doc.metadata.get("title")
+        page = doc.metadata.get("page_label")
+        context_parts.append(f"[Sumber: {source} | Halaman: {page}]\n{doc.page_content}")
+
+    context = "\n\n---\n\n".join(context_parts)
+
+    if state["web_results"]:
+        context += f"\n\nHasil Pencarian Web:\n{state['web_results']}"
+
+    full_prompt = f"""{SYSTEM_PROMPT}
+
+Konteks:
+{context}
+
+Pertanyaan: {state["question"]}
+"""
+
+    answer = model.invoke(full_prompt).content
+    return {"answer": answer}
 
 document_prompt = PromptTemplate(
     input_variables=["page_content","title"],
@@ -84,6 +124,7 @@ prompt = ChatPromptTemplate([
     ("system", SYSTEM_PROMPT),
     ("human", "{input}")
 ])
+
 
 
 question_answer_chain = create_stuff_documents_chain(model, prompt, document_prompt=document_prompt)
