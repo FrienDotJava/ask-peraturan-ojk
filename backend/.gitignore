@@ -10,3 +10,4 @@ wheels/
 .venv
 /chroma
 .env
+test.py

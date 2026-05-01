@@ -84,6 +84,6 @@ print("=" * 60)
 for i, doc in enumerate(response["context"], 1):
     meta = doc.metadata
     print(f"\n[{i}] {meta.get('source', 'Unknown')}")
-    print(f"    Halaman : {meta.get('page_label', meta.get('page', '-'))}")
+    print(f"    Halaman : {meta.get('page_label')}")
     print(f"    Konten  : {doc.page_content[:300].strip()}...")
     print("-" * 60)
