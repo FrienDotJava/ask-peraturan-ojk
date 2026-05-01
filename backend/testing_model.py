@@ -4,12 +4,13 @@ from langchain_community.retrievers import BM25Retriever
 from langchain_classic.retrievers import EnsembleRetriever, ContextualCompressionRetriever
 from langchain_classic.retrievers.document_compressors import CrossEncoderReranker
 from langchain_chroma import Chroma
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_groq import ChatGroq
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 from langchain_classic.chains import create_retrieval_chain
 from dotenv import load_dotenv
 from langchain_core.documents import Document
+from langchain.chat_models import init_chat_model
 
 load_dotenv()
 
@@ -44,23 +45,32 @@ di satu bagian konteks, cari kelanjutannya di bagian konteks lain yang diberikan
 Gabungkan semua poin dari seluruh konteks sebelum menjawab.
 
 Jika informasi tidak ada dalam konteks, katakan "Informasi tidak ditemukan dalam dokumen."
-Selalu sebutkan sumber (Nama dokumen, pasal, dan ayat).
+Selalu sebutkan sumber:
+- Nama dokumen (Contoh: PERATURAN OTORITAS JASA KEUANGAN NOMOR 13 /POJK.05/2014 Tentang Penyelenggaraan Usaha Lembaga Keuangan Mikro)
+- Pasal (Contoh: Pasal 1)
+- Poin/Ayat (Contoh: 1 atau (1))
 
 Konteks: 
 {context}
 """
+
+document_prompt = PromptTemplate(
+    input_variables=["page_content","title"],
+    template="Sumber Dokumen: {title}\nKonten: {page_content}"
+)
 
 prompt = ChatPromptTemplate([
     ("system", SYSTEM_PROMPT),
     ("human", "{input}")
 ])
 
-model = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+# model = init_chat_model(model="llama-3.3-70b-versatile", temperature=0, model_provider="groq")
+model = init_chat_model(model="mistral-large-2512", temperature=0)
 
-question_answer_chain = create_stuff_documents_chain(model, prompt)
+question_answer_chain = create_stuff_documents_chain(model, prompt, document_prompt=document_prompt)
 rag_chain = create_retrieval_chain(final_retriever, question_answer_chain)
 
-response = rag_chain.invoke({"input": "Apa sanksi fintech yang tidak terdaftar OJK?"})
+response = rag_chain.invoke({"input": "Apa syarat dokumen untuk pinjam meminjam uang berbasis teknologi informasi?"})
 
 print("=" * 60)
 print("JAWABAN:")
