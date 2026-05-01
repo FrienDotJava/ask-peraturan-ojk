@@ -6,8 +6,6 @@ from langchain_classic.retrievers.document_compressors import CrossEncoderRerank
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_groq import ChatGroq
-from langchain_classic.chains.combine_documents import create_stuff_documents_chain
-from langchain_classic.chains import create_retrieval_chain
 from dotenv import load_dotenv
 from langchain_core.documents import Document
 from langchain.chat_models import init_chat_model
@@ -125,25 +123,43 @@ prompt = ChatPromptTemplate([
     ("human", "{input}")
 ])
 
+workflow = StateGraph(AgentState)
+workflow.add_node("retrieve", retrieve_local)
+workflow.add_node("grade", grade_documents)
+workflow.add_node("web_search", web_search)
+workflow.add_node("generate", generate_answer)
 
+workflow.set_entry_point("retrieve")
+workflow.add_edge("retrieve", "grade")
+workflow.add_edge("grade", "web_search")
+workflow.add_edge("web_search", "generate")
+workflow.add_edge("generate", END)
 
-question_answer_chain = create_stuff_documents_chain(model, prompt, document_prompt=document_prompt)
-rag_chain = create_retrieval_chain(final_retriever, question_answer_chain)
+agent = workflow.compile()
 
-response = rag_chain.invoke({"input": "Apa syarat dokumen untuk pinjam meminjam uang berbasis teknologi informasi?"})
+def run_query(question: str):
+    result = agent.invoke({"question": question})
 
-print("=" * 60)
-print("JAWABAN:")
-print("=" * 60)
-print(response["answer"])
+    print("=" * 60)
+    print("JAWABAN:")
+    print("=" * 60)
+    print(result["answer"])
 
-print("\n" + "=" * 60)
-print("SUMBER DOKUMEN:")
-print("=" * 60)
+    print("\n" + "=" * 60)
+    print("SUMBER DOKUMEN:")
+    print("=" * 60)
+    for i, doc in enumerate(result["retrieved_docs"], 1):
+        meta = doc.metadata
+        print(f"\n[{i}] {meta.get('source', 'Unknown')}")
+        print(f"    Halaman : {meta.get('page_label', meta.get('page', '-'))}")
+        print(f"    Konten  : {doc.page_content[:300].strip()}...")
+        print("-" * 60)
 
-for i, doc in enumerate(response["context"], 1):
-    meta = doc.metadata
-    print(f"\n[{i}] {meta.get('source', 'Unknown')}")
-    print(f"    Halaman : {meta.get('page_label', meta.get('page', '-'))}")
-    print(f"    Konten  : {doc.page_content[:300].strip()}...")
+    web_used = "Ya" if result.get("web_results") else "Tidak"
+    print(f"\n[Web search digunakan: {web_used}]")
     print("-" * 60)
+
+
+if __name__ == "__main__":
+    # run_query("Apa sanksi fintech yang tidak terdaftar OJK?")
+    run_query("Apa itu LKM?")
