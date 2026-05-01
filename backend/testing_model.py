@@ -1,21 +1,48 @@
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.cross_encoders import HuggingFaceCrossEncoder
+from langchain_community.retrievers import BM25Retriever
+from langchain_classic.retrievers import EnsembleRetriever, ContextualCompressionRetriever
+from langchain_classic.retrievers.document_compressors import CrossEncoderReranker
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 from langchain_classic.chains import create_retrieval_chain
 from dotenv import load_dotenv
+from langchain_core.documents import Document
 
 load_dotenv()
 
-
 embeddings = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
 vector_store = Chroma(persist_directory="./chroma", embedding_function=embeddings)
-retriever = vector_store.as_retriever(kwargs={'k': 4})
+
+chroma_data = vector_store.get()
+chunks = [
+    Document(page_content=text, metadata=meta)
+    for text, meta in zip(chroma_data["documents"], chroma_data["metadatas"])
+]
+
+retriever = vector_store.as_retriever(kwargs={'k': 6})
+bm25_retriever = BM25Retriever.from_documents(chunks, )
+
+ensemble_retriever = EnsembleRetriever(retrievers=[bm25_retriever, retriever], weights=[0.5, 0.5])
+
+reranker_model = HuggingFaceCrossEncoder(model_name="cross-encoder/ms-marco-MiniLM-L-6-v2")
+reranker = CrossEncoderReranker(model=reranker_model, top_n=3)
+
+final_retriever = ContextualCompressionRetriever(
+    base_compressor=reranker,
+    base_retriever=ensemble_retriever
+)
 
 SYSTEM_PROMPT = """
 Anda adalah asisten hukum yang ahli dalam peraturan Otoritas Jasa Keuangan Indonesia.
 Jawab pertanyaan berikut HANYA berdasarkan konteks yang diberikan. 
+
+PENTING: Jika sebuah daftar (a, b, c, dst.) tampak tidak lengkap atau terpotong 
+di satu bagian konteks, cari kelanjutannya di bagian konteks lain yang diberikan.
+Gabungkan semua poin dari seluruh konteks sebelum menjawab.
+
 Jika informasi tidak ada dalam konteks, katakan "Informasi tidak ditemukan dalam dokumen."
 Selalu sebutkan sumber (Nama dokumen, pasal, dan ayat).
 
@@ -31,9 +58,9 @@ prompt = ChatPromptTemplate([
 model = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
 
 question_answer_chain = create_stuff_documents_chain(model, prompt)
-rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+rag_chain = create_retrieval_chain(final_retriever, question_answer_chain)
 
-response = rag_chain.invoke({"input": "Apa syarat dokumen untuk pinjam meminjam uang berbasis teknologi informasi?"})
+response = rag_chain.invoke({"input": "Apa sanksi fintech yang tidak terdaftar OJK?"})
 
 print("=" * 60)
 print("JAWABAN:")
