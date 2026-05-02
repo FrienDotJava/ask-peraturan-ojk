@@ -113,16 +113,6 @@ Pertanyaan: {state["question"]}
     answer = model.invoke(full_prompt).content
     return {"answer": answer}
 
-document_prompt = PromptTemplate(
-    input_variables=["page_content","title"],
-    template="Sumber Dokumen: {title}\nKonten: {page_content}"
-)
-
-prompt = ChatPromptTemplate([
-    ("system", SYSTEM_PROMPT),
-    ("human", "{input}")
-])
-
 workflow = StateGraph(AgentState)
 workflow.add_node("retrieve", retrieve_local)
 workflow.add_node("grade", grade_documents)
