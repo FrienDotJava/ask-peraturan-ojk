@@ -151,7 +151,7 @@ def run_query(question: str):
     for i, doc in enumerate(result["retrieved_docs"], 1):
         meta = doc.metadata
         print(f"\n[{i}] {meta.get('source', 'Unknown')}")
-        print(f"    Halaman : {meta.get('page_label', meta.get('page', '-'))}")
+        print(f"    Halaman : {meta.get('page_label')}")
         print(f"    Konten  : {doc.page_content[:300].strip()}...")
         print("-" * 60)
 
