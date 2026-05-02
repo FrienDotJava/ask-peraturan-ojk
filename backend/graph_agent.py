@@ -146,11 +146,21 @@ def run_query(question: str):
         print(f"    Konten  : {doc.page_content[:300].strip()}...")
         print("-" * 60)
 
-    web_used = "Ya" if result.get("web_results") else "Tidak"
+    web_results = result.get("web_results")
+    if web_results:
+        print("\n" + "=" * 60)
+        print("HASIL WEB SEARCH:")
+        print("=" * 60)
+        for i, item in enumerate(web_results, 1):
+            print(f"\n[{i}] {item.get('url', 'Unknown URL')}")
+            print(f"    {item.get('content', '')[:300].strip()}...")
+            print("-" * 60)
+    
+    web_used = "Ya" if web_results else "Tidak"
     print(f"\n[Web search digunakan: {web_used}]")
     print("-" * 60)
 
 
 if __name__ == "__main__":
-    # run_query("Apa sanksi fintech yang tidak terdaftar OJK?")
-    run_query("Apa itu LKM?")
+    run_query("Apa sanksi fintech yang tidak terdaftar OJK?")
+    # run_query("Apa itu LKM?")
