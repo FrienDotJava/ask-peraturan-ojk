@@ -7,6 +7,9 @@ from langchain_classic.retrievers.document_compressors import CrossEncoderRerank
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain.chat_models import init_chat_model
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def load_config(param_path: str = "config.yaml") -> dict:
     try:

@@ -25,7 +25,7 @@ Jawab HANYA dengan "yes" atau "no", tanpa penjelasan lain.
 
 
 def get_full_prompt(context, question):
-    f"""{SYSTEM_PROMPT}
+    return f"""{SYSTEM_PROMPT}
 
 Konteks:
 {context}
