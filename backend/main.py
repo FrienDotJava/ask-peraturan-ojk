@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from typing import List
+from typing import List, Optional
 from setup_agent import get_agent
 
 load_dotenv()
@@ -27,7 +27,7 @@ class UserRequest(BaseModel):
 class Source(BaseModel):
     source: str
     title: str
-    page: int
+    page: Optional[int] = None
 
 
 class QueryResponse(BaseModel):
@@ -42,9 +42,10 @@ agent = get_agent()
 async def query(request: UserRequest):
     result = agent.invoke({"question": request.question})
     retrieved_docs = result['retrieved_docs']
-    
+    web_results = result.get("web_results")
+
     sources = []
-    for i, doc in enumerate(retrieved_docs, 1):
+    for doc in retrieved_docs:
         source = doc.metadata.get('source')
         title = doc.metadata.get('title')
         page = doc.metadata.get('page_label')
@@ -53,6 +54,12 @@ async def query(request: UserRequest):
             title=title,
             page=page
         ))
+    if web_results:
+        for web_result in web_results:
+            sources.append(Source(
+                source=web_result.get("url"),
+                title=web_result.get("title")
+            ))
     
     return QueryResponse(answer=result['answer'], sources=sources)
 
