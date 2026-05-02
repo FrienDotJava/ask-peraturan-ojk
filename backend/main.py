@@ -25,13 +25,33 @@ class UserRequest(BaseModel):
 
 
 class Source(BaseModel):
+    source: str
     title: str
     page: int
 
 
-class ModelResponse(BaseModel):
+class QueryResponse(BaseModel):
     answer: str
     sources: List[Source]
 
 
 agent = get_agent()
+
+
+@app.post("/api/query", response_model=QueryResponse)
+async def query(request: UserRequest):
+    result = agent.invoke({"question": request.question})
+    retrieved_docs = result['retrieved_docs']
+    
+    sources = []
+    for i, doc in enumerate(retrieved_docs, 1):
+        source = doc.metadata.get('source')
+        title = doc.metadata.get('title')
+        page = doc.metadata.get('page_label')
+        sources.append(Source(
+            source=source,
+            title=title,
+            page=page
+        ))
+    
+    return QueryResponse(answer=result['answer'], sources=sources)
