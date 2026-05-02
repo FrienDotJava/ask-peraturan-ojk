@@ -2,21 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.cross_encoders import HuggingFaceCrossEncoder
-from langchain_community.retrievers import BM25Retriever
-from langchain_classic.retrievers import EnsembleRetriever, ContextualCompressionRetriever
-from langchain_classic.retrievers.document_compressors import CrossEncoderReranker
-from langchain_chroma import Chroma
-from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from langchain_groq import ChatGroq
-from dotenv import load_dotenv
-from langchain_core.documents import Document
-from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, END
 from langchain_community.tools.tavily_search import TavilySearchResults
 from typing import TypedDict, List
-from context import SYSTEM_PROMPT, get_grade_prompt, get_full_prompt
+from context import get_grade_prompt, get_full_prompt
+from utils import load_config, init_retriever, init_model
 
 load_dotenv()
 
@@ -47,30 +37,10 @@ class ModelResponse(BaseModel):
     sources: List[Source]
 
 
-embeddings = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
-vector_store = Chroma(persist_directory="./chroma", embedding_function=embeddings)
+CONFIG = load_config()
 
-chroma_data = vector_store.get()
-chunks = [
-    Document(page_content=text, metadata=meta)
-    for text, meta in zip(chroma_data["documents"], chroma_data["metadatas"])
-]
-
-retriever = vector_store.as_retriever(kwargs={'k': 6})
-bm25_retriever = BM25Retriever.from_documents(chunks, )
-
-ensemble_retriever = EnsembleRetriever(retrievers=[bm25_retriever, retriever], weights=[0.5, 0.5])
-
-reranker_model = HuggingFaceCrossEncoder(model_name="cross-encoder/ms-marco-MiniLM-L-6-v2")
-reranker = CrossEncoderReranker(model=reranker_model, top_n=3)
-
-final_retriever = ContextualCompressionRetriever(
-    base_compressor=reranker,
-    base_retriever=ensemble_retriever
-)
-
-# model = init_chat_model(model="llama-3.3-70b-versatile", temperature=0, model_provider="groq")
-model = init_chat_model(model="mistral-large-2512", temperature=0)
+FINAL_RETRIEVER = init_retriever(CONFIG)
+MODEL = init_model(CONFIG["llm"], 0)
 
 class AgentState(TypedDict):
     question: str
@@ -81,14 +51,14 @@ class AgentState(TypedDict):
 
 
 def retrieve_local(state: AgentState):
-    docs = final_retriever.invoke(state['question'])
+    docs = FINAL_RETRIEVER.invoke(state['question'])
     return {"retrieved_docs": docs}
 
 
 def grade_documents(state: AgentState):
     doc_contents = [d.page_content for d in state["retrieved_docs"]]
     grade_prompt = get_grade_prompt(state["question"], doc_contents)
-    grade = model.invoke(grade_prompt).content.strip().lower()
+    grade = MODEL.invoke(grade_prompt).content.strip().lower()
     needs_web = "yes" not in grade # if "yes", no need for web search
     return {"needs_web": needs_web}
 
@@ -114,7 +84,7 @@ def generate_answer(state: AgentState):
         context += f"\n\nHasil Pencarian Web:\n{state['web_results']}"
     full_prompt = get_full_prompt(context, state["question"])
 
-    answer = model.invoke(full_prompt).content
+    answer = MODEL.invoke(full_prompt).content
     return {"answer": answer}
 
 
