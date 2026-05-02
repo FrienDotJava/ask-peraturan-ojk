@@ -1,6 +1,32 @@
-def main():
-    print("Hello from backend!")
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+from typing import List
+
+app = FastAPI()
+
+cors_origins = [
+    "http://localhost:3000"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+class UserRequest(BaseModel):
+    question: str
 
 
-if __name__ == "__main__":
-    main()
+class Source(BaseModel):
+    title: str
+    page: int
+
+
+class ModelResponse(BaseModel):
+    answer: str
+    sources: List[Source]
+
+
