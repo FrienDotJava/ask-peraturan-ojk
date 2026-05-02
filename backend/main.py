@@ -55,3 +55,8 @@ async def query(request: UserRequest):
         ))
     
     return QueryResponse(answer=result['answer'], sources=sources)
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
