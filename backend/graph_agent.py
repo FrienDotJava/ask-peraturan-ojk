@@ -12,120 +12,121 @@ from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, END
 from langchain_community.tools.tavily_search import TavilySearchResults
 from typing import TypedDict, List
+from setup_agent import get_agent
 
 load_dotenv()
 
-embeddings = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
-vector_store = Chroma(persist_directory="./chroma", embedding_function=embeddings)
+# embeddings = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
+# vector_store = Chroma(persist_directory="./chroma", embedding_function=embeddings)
 
-chroma_data = vector_store.get()
-chunks = [
-    Document(page_content=text, metadata=meta)
-    for text, meta in zip(chroma_data["documents"], chroma_data["metadatas"])
-]
+# chroma_data = vector_store.get()
+# chunks = [
+#     Document(page_content=text, metadata=meta)
+#     for text, meta in zip(chroma_data["documents"], chroma_data["metadatas"])
+# ]
 
-retriever = vector_store.as_retriever(kwargs={'k': 6})
-bm25_retriever = BM25Retriever.from_documents(chunks, )
+# retriever = vector_store.as_retriever(kwargs={'k': 6})
+# bm25_retriever = BM25Retriever.from_documents(chunks, )
 
-ensemble_retriever = EnsembleRetriever(retrievers=[bm25_retriever, retriever], weights=[0.5, 0.5])
+# ensemble_retriever = EnsembleRetriever(retrievers=[bm25_retriever, retriever], weights=[0.5, 0.5])
 
-reranker_model = HuggingFaceCrossEncoder(model_name="cross-encoder/ms-marco-MiniLM-L-6-v2")
-reranker = CrossEncoderReranker(model=reranker_model, top_n=3)
+# reranker_model = HuggingFaceCrossEncoder(model_name="cross-encoder/ms-marco-MiniLM-L-6-v2")
+# reranker = CrossEncoderReranker(model=reranker_model, top_n=3)
 
-final_retriever = ContextualCompressionRetriever(
-    base_compressor=reranker,
-    base_retriever=ensemble_retriever
-)
+# final_retriever = ContextualCompressionRetriever(
+#     base_compressor=reranker,
+#     base_retriever=ensemble_retriever
+# )
 
-# model = init_chat_model(model="llama-3.3-70b-versatile", temperature=0, model_provider="groq")
-model = init_chat_model(model="mistral-large-2512", temperature=0)
+# # model = init_chat_model(model="llama-3.3-70b-versatile", temperature=0, model_provider="groq")
+# model = init_chat_model(model="mistral-large-2512", temperature=0)
 
-class AgentState(TypedDict):
-    question: str
-    retrieved_docs: List
-    web_results: str
-    answer: str
-    needs_web: bool
-
-
-def retrieve_local(state: AgentState):
-    docs = final_retriever.invoke(state['question'])
-    return {"retrieved_docs": docs}
+# class AgentState(TypedDict):
+#     question: str
+#     retrieved_docs: List
+#     web_results: str
+#     answer: str
+#     needs_web: bool
 
 
-def grade_documents(state: AgentState):
-    doc_contents = [d.page_content for d in state["retrieved_docs"]]
-    grade_prompt = f"""
-Pertanyaan: {state["question"]}
-Dokumen yang ditemukan: {doc_contents}
-
-Apakah dokumen ini cukup relevan untuk menjawab pertanyaan tersebut?
-Jawab HANYA dengan "yes" atau "no", tanpa penjelasan lain.
-"""
-    grade = model.invoke(grade_prompt).content.strip().lower()
-    needs_web = "yes" not in grade # if "yes", no need for web search
-    return {"needs_web": needs_web}
+# def retrieve_local(state: AgentState):
+#     docs = final_retriever.invoke(state['question'])
+#     return {"retrieved_docs": docs}
 
 
-def web_search(state: AgentState):
-    if state["needs_web"]:
-        web = TavilySearchResults(k=3)
-        results = web.invoke(state['question'])
-        return {"web_results": results}
-    return {"web_results": ""}
+# def grade_documents(state: AgentState):
+#     doc_contents = [d.page_content for d in state["retrieved_docs"]]
+#     grade_prompt = f"""
+# Pertanyaan: {state["question"]}
+# Dokumen yang ditemukan: {doc_contents}
+
+# Apakah dokumen ini cukup relevan untuk menjawab pertanyaan tersebut?
+# Jawab HANYA dengan "yes" atau "no", tanpa penjelasan lain.
+# """
+#     grade = model.invoke(grade_prompt).content.strip().lower()
+#     needs_web = "yes" not in grade # if "yes", no need for web search
+#     return {"needs_web": needs_web}
 
 
-SYSTEM_PROMPT = """
-Anda adalah asisten hukum yang ahli dalam peraturan Otoritas Jasa Keuangan Indonesia.
-Jawab pertanyaan berikut HANYA berdasarkan konteks yang diberikan. 
+# def web_search(state: AgentState):
+#     if state["needs_web"]:
+#         web = TavilySearchResults(k=3)
+#         results = web.invoke(state['question'])
+#         return {"web_results": results}
+#     return {"web_results": ""}
 
-PENTING: Jika sebuah daftar (a, b, c, dst.) tampak tidak lengkap atau terpotong 
-di satu bagian konteks, cari kelanjutannya di bagian konteks lain yang diberikan.
-Gabungkan semua poin dari seluruh konteks sebelum menjawab.
 
-Jika informasi tidak ada dalam konteks, katakan "Informasi tidak ditemukan dalam dokumen."
-Selalu sebutkan sumber:
-- Nama dokumen (Contoh: PERATURAN OTORITAS JASA KEUANGAN NOMOR 13 /POJK.05/2014 Tentang Penyelenggaraan Usaha Lembaga Keuangan Mikro)
-- Pasal (Contoh: Pasal 1)
-- Poin/Ayat (Contoh: 1 atau (1))
-"""
+# SYSTEM_PROMPT = """
+# Anda adalah asisten hukum yang ahli dalam peraturan Otoritas Jasa Keuangan Indonesia.
+# Jawab pertanyaan berikut HANYA berdasarkan konteks yang diberikan. 
 
-def generate_answer(state: AgentState):
-    context_parts = []
-    for doc in state["retrieved_docs"]:
-        source = doc.metadata.get("title")
-        page = doc.metadata.get("page_label")
-        context_parts.append(f"[Sumber: {source} | Halaman: {page}]\n{doc.page_content}")
+# PENTING: Jika sebuah daftar (a, b, c, dst.) tampak tidak lengkap atau terpotong 
+# di satu bagian konteks, cari kelanjutannya di bagian konteks lain yang diberikan.
+# Gabungkan semua poin dari seluruh konteks sebelum menjawab.
 
-    context = "\n\n---\n\n".join(context_parts)
+# Jika informasi tidak ada dalam konteks, katakan "Informasi tidak ditemukan dalam dokumen."
+# Selalu sebutkan sumber:
+# - Nama dokumen (Contoh: PERATURAN OTORITAS JASA KEUANGAN NOMOR 13 /POJK.05/2014 Tentang Penyelenggaraan Usaha Lembaga Keuangan Mikro)
+# - Pasal (Contoh: Pasal 1)
+# - Poin/Ayat (Contoh: 1 atau (1))
+# """
 
-    if state["web_results"]:
-        context += f"\n\nHasil Pencarian Web:\n{state['web_results']}"
+# def generate_answer(state: AgentState):
+#     context_parts = []
+#     for doc in state["retrieved_docs"]:
+#         source = doc.metadata.get("title")
+#         page = doc.metadata.get("page_label")
+#         context_parts.append(f"[Sumber: {source} | Halaman: {page}]\n{doc.page_content}")
 
-    full_prompt = f"""{SYSTEM_PROMPT}
+#     context = "\n\n---\n\n".join(context_parts)
 
-Konteks:
-{context}
+#     if state["web_results"]:
+#         context += f"\n\nHasil Pencarian Web:\n{state['web_results']}"
 
-Pertanyaan: {state["question"]}
-"""
+#     full_prompt = f"""{SYSTEM_PROMPT}
 
-    answer = model.invoke(full_prompt).content
-    return {"answer": answer}
+# Konteks:
+# {context}
 
-workflow = StateGraph(AgentState)
-workflow.add_node("retrieve", retrieve_local)
-workflow.add_node("grade", grade_documents)
-workflow.add_node("web_search", web_search)
-workflow.add_node("generate", generate_answer)
+# Pertanyaan: {state["question"]}
+# """
 
-workflow.set_entry_point("retrieve")
-workflow.add_edge("retrieve", "grade")
-workflow.add_edge("grade", "web_search")
-workflow.add_edge("web_search", "generate")
-workflow.add_edge("generate", END)
+#     answer = model.invoke(full_prompt).content
+#     return {"answer": answer}
 
-agent = workflow.compile()
+# workflow = StateGraph(AgentState)
+# workflow.add_node("retrieve", retrieve_local)
+# workflow.add_node("grade", grade_documents)
+# workflow.add_node("web_search", web_search)
+# workflow.add_node("generate", generate_answer)
+
+# workflow.set_entry_point("retrieve")
+# workflow.add_edge("retrieve", "grade")
+# workflow.add_edge("grade", "web_search")
+# workflow.add_edge("web_search", "generate")
+# workflow.add_edge("generate", END)
+
+agent = get_agent()
 
 def run_query(question: str):
     result = agent.invoke({"question": question})
