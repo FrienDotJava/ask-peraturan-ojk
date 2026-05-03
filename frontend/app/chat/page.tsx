@@ -16,7 +16,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Halo! Saya AskPeraturan. Tanyakan apapun tentang peraturan Indonesia — OJK, BPJS, pajak UMKM, UU Cipta Kerja, dan lainnya.",
+      content: "Halo! Saya AskPeraturan. Tanyakan apapun tentang peraturan mengenai OJK.",
     },
   ])
   const [isLoading, setIsLoading] = useState(false)

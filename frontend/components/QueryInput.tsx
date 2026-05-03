@@ -9,7 +9,6 @@ interface Props {
 
 const EXAMPLE_QUESTIONS = [
   "Apa syarat fintech terdaftar OJK?",
-  "Bagaimana cara klaim BPJS rawat inap?",
   "Tarif pajak UMKM berapa persen?",
 ]
 

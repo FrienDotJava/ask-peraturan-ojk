@@ -1,14 +1,15 @@
 import SourceCard from "./SourceCard";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
-  role: "user" | "assistant"
-  content: string
-  sources?: { source: string; page?: number }[]
-  loading?: boolean
+  role: "user" | "assistant";
+  content: string;
+  sources?: { source: string; title: string; page?: number }[];
+  loading?: boolean;
 }
 
 export default function MessageBubble({ message }: { message: Message }) {
-  const isUser = message.role === "user"
+  const isUser = message.role === "user";
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -27,8 +28,12 @@ export default function MessageBubble({ message }: { message: Message }) {
               <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
               <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
             </div>
-          ) : (
+          ) : isUser ? (
             <p className="whitespace-pre-wrap">{message.content}</p>
+          ) : (
+            <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0">
+              <ReactMarkdown>{message.content}</ReactMarkdown>
+            </div>
           )}
         </div>
 
@@ -37,11 +42,16 @@ export default function MessageBubble({ message }: { message: Message }) {
           <div className="mt-2 space-y-1">
             <p className="text-xs text-gray-400 px-1">Sumber dokumen:</p>
             {message.sources.map((src, i) => (
-              <SourceCard key={i} source={src.source} page={src.page ?? 0} />
+              <SourceCard
+                key={i}
+                source={src.source}
+                title={src.title}
+                page={src.page ?? 0}
+              />
             ))}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
