@@ -1,5 +1,5 @@
 from langgraph.graph import StateGraph, END
-from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_tavily import TavilySearchResults
 from typing import TypedDict, List
 from context import get_grade_prompt, get_full_prompt
 from utils import load_config, init_retriever, init_model

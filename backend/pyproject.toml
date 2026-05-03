@@ -13,6 +13,7 @@ dependencies = [
     "langchain-groq>=1.1.2",
     "langchain-huggingface>=1.2.2",
     "langchain-mistralai>=1.1.2",
+    "langchain-tavily>=0.2.18",
     "pypdf>=6.10.2",
     "python-dotenv>=1.2.2",
     "rank-bm25>=0.2.2",
