@@ -4,12 +4,9 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-linear-to-br from-blue-50 to-white flex flex-col items-center justify-center px-4 text-center">
       <div className="max-w-2xl">
-        <div className="w-16 h-16 bg-blue-600 rounded-2xl mx-auto mb-6 flex items-center justify-center text-white text-2xl font-bold">
-          AP
-        </div>
         <h1 className="text-4xl font-bold text-gray-900 mb-4">AskPeraturan</h1>
         <p className="text-lg text-gray-600 mb-8">
-          Tanya tentang peraturan Indonesia — OJK, BPJS, pajak, dan ribuan regulasi lainnya. 
+          Tanya tentang peraturan Otoritas Jasa Keuangan (OJK). 
           Dijawab dengan AI berbasis dokumen resmi pemerintah.
         </p>
         <Link
@@ -20,7 +17,7 @@ export default function Home() {
         </Link>
         <div className="mt-12 grid grid-cols-3 gap-6 text-left">
           {[
-            { icon: "📄", title: "Berbasis Dokumen Resmi", desc: "Jawaban dari peraturan.go.id, OJK, dan sumber resmi lainnya" },
+            { icon: "📄", title: "Berbasis Dokumen Resmi", desc: "Jawaban dari dokumen resmi POJK" },
             { icon: "🔍", title: "Hybrid Search", desc: "Gabungan pencarian semantik dan keyword untuk hasil terbaik" },
             { icon: "📌", title: "Sumber Transparan", desc: "Setiap jawaban disertai referensi dokumen dan nomor halaman" },
           ].map((f) => (
