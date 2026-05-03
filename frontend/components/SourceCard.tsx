@@ -10,7 +10,7 @@ export default function SourceCard({ source, title, page }: { source: string; ti
       <div className="flex flex-col">
         <span className="truncate">{filename}</span>
         <span className="font-bold">{title}</span>
-        <span className="shrink-0 text-blue-400">{page != 0 ? "Hal." + (page + 1) : "Internet"}</span>
+        <span className="shrink-0 text-blue-400">{page != 0 ? "Halaman " + (page) : "Internet"}</span>
       </div>
     </div>
   )
