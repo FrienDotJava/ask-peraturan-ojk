@@ -1,5 +1,5 @@
 from langgraph.graph import StateGraph, END
-from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_tavily import TavilySearch
 from typing import TypedDict, List
 from context import get_grade_prompt, get_full_prompt
 from utils import load_config, init_retriever, init_model
@@ -18,6 +18,7 @@ class AgentState(TypedDict):
     web_results: str
     answer: str
     needs_web: bool
+    is_evaluate: bool
 
 
 def retrieve_local(state: AgentState):
@@ -35,7 +36,7 @@ def grade_documents(state: AgentState):
 
 def web_search(state: AgentState):
     if state["needs_web"]:
-        web = TavilySearchResults(k=3)
+        web = TavilySearch(max_results=3)
         results = web.invoke(state['question'])
         return {"web_results": results}
     return {"web_results": ""}
@@ -52,7 +53,7 @@ def generate_answer(state: AgentState):
 
     if state["web_results"]:
         context += f"\n\nHasil Pencarian Web:\n{state['web_results']}"
-    full_prompt = get_full_prompt(context, state["question"])
+    full_prompt = get_full_prompt(context, state["question"], state.get("is_evaluate", False))
 
     answer = MODEL.invoke(full_prompt).content
     return {"answer": answer}
