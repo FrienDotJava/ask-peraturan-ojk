@@ -4,11 +4,11 @@ import time
 
 test_cases = [
     {
-        "question": "Apa yang dimaksud dengan Penjaminan menurut POJK No. 5/POJK.05/2014?",
+        "question": "Apa yang dimaksud dengan Penjaminan menurut peraturan OJK?",
         "ground_truth": "Penjaminan adalah kegiatan pemberian jaminan atas pemenuhan kewajiban finansial Terjamin."
     },
     {
-        "question": "Berapa jumlah modal disetor paling sedikit untuk mendirikan Perusahaan Penjaminan lingkup nasional?",
+        "question": "Berapa jumlah modal mendirikan Perusahaan Penjaminan lingkup nasional?",
         "ground_truth": "Jumlah modal disetor atau setoran pokok dan sertifikat modal Perusahaan Penjaminan ditetapkan paling sedikit Rp100.000.000.000,00 (seratus miliar rupiah) untuk lingkup nasional."
     },
     {
@@ -44,8 +44,8 @@ test_cases = [
         "ground_truth": "Pelaksanaan Pemeriksaan terhadap setiap Lembaga Penjaminan secara berkala dilakukan paling sedikit 1 (satu) kali dalam 1 (satu) tahun."
     },
     {
-        "question": "Apa saja tahapan Pemeriksaan Lembaga Penjaminan yang dilakukan oleh Otoritas Jasa Keuangan?",
-        "ground_truth": "Pemeriksaan dilakukan melalui tahapan: persiapan Pemeriksaan, pelaksanaan Pemeriksaan, dan pelaporan hasil Pemeriksaan."
+        "question": "Bagaimana tahap Pemeriksaan Lembaga Penjaminan yang dilakukan oleh OJK?",
+        "ground_truth": "Pemeriksaan berkala meliputi pemeriksaan atas substansi laporan berkala dan kepatuhan terhadap peraturan perundang-undangan di bidang lembaga penjaminan."
     },
     {
         "question": "Berapa batas nominal terendah Pinjaman atau Pembiayaan yang wajib dilayani oleh Lembaga Keuangan Mikro (LKM)?",
@@ -100,10 +100,6 @@ test_cases = [
         "ground_truth": "Walk in Customer (WIC) adalah pihak yang menggunakan jasa PJK di Sektor Perbankan atau Pasar Modal namun tidak memiliki rekening pada PJK tersebut, tidak termasuk pihak yang mendapat perintah atau penugasan dari Nasabah untuk transaksi kepentingan Nasabah."
     },
     {
-        "question": "Berapa persentase minimum penempatan investasi pada Surat Berharga Negara (SBN) untuk dana pensiun pemberi kerja?",
-        "ground_truth": "Dana pensiun pemberi kerja wajib menempatkan investasi pada SBN paling rendah 30% (tiga puluh persen) dari seluruh jumlah investasi dana pensiun pemberi kerja."
-    },
-    {
         "question": "Siapa pihak yang berwenang untuk melakukan penyidikan tindak pidana di Sektor Jasa Keuangan berdasarkan POJK No.22/POJK.01/2015?",
         "ground_truth": "Otoritas Jasa Keuangan berwenang melakukan penyidikan, yang pelaksanaannya dilakukan oleh Penyidik OJK yang terdiri atas Pejabat Penyidik Kepolisian Negara Republik Indonesia dan/atau Pejabat Pegawai Negeri Sipil yang diberi wewenang khusus sebagai Penyidik."
     }
@@ -128,6 +124,7 @@ for case in test_cases:
             contexts.append([doc.page_content for doc in result["retrieved_docs"]])
             ground_truths.append(case["ground_truth"])
 
+            print(f"\tAnswer: {result['answer']}")
             break
         except Exception as e:
             if "429" in e:

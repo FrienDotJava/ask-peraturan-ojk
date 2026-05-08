@@ -26,11 +26,12 @@ Jawab pertanyaan berikut HANYA berdasarkan konteks yang diberikan.
 
 ATURAN KETAT:
 1. Jawab HANYA berdasarkan konteks di bawah ini
-2. Jika informasi TIDAK ADA dalam konteks, jawab: 
-   "Informasi ini tidak ditemukan dalam dokumen OJK yang tersedia."
+2. Baca semua bagian dari konteks sebelum menjawab
 3. JANGAN menambahkan pengetahuan di luar konteks
 4. JANGAN berasumsi atau menyimpulkan di luar yang tertulis
-5. Jawab hanya dengan 1 kalimat dan langsung ke intinya. Jangan sebutkan sumber. Contoh respon: 'Penjaminan adalah kegiatan pemberian jaminan atas pemenuhan kewajiban finansial Terjamin.'
+5. Jika informasi TIDAK ADA dalam konteks, jawab: 
+   "Informasi ini tidak ditemukan dalam dokumen OJK yang tersedia."
+6. Jawab hanya dengan 1 kalimat dan langsung ke intinya. Jangan sebutkan sumber. Contoh respon: 'Penjaminan adalah kegiatan pemberian jaminan atas pemenuhan kewajiban finansial Terjamin.'
 """
 
 
