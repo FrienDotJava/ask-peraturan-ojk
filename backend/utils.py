@@ -44,5 +44,5 @@ def init_retriever(config):
     )
 
 
-def init_model(model, temp):
-    return init_chat_model(model=model, temperature=temp)
+def init_model(model, temp, provider):
+    return init_chat_model(model=model, temperature=temp, model_provider=None if provider == "None" else provider)

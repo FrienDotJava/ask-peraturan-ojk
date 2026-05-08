@@ -11,3 +11,5 @@ wheels/
 /chroma
 .env
 test.py
+test.ipynb
+test_set_generator.py

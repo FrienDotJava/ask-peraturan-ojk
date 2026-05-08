@@ -1,5 +1,5 @@
 from langgraph.graph import StateGraph, END
-from langchain_tavily import TavilySearchResults
+from langchain_community.tools.tavily_search import TavilySearchResults
 from typing import TypedDict, List
 from context import get_grade_prompt, get_full_prompt
 from utils import load_config, init_retriever, init_model
@@ -10,7 +10,7 @@ load_dotenv()
 CONFIG = load_config()
 
 FINAL_RETRIEVER = init_retriever(CONFIG)
-MODEL = init_model(CONFIG["llm"], 0)
+MODEL = init_model(CONFIG["llm"], 0, provider=CONFIG["provider"])
 
 class AgentState(TypedDict):
     question: str
