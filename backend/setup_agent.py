@@ -36,9 +36,9 @@ def grade_documents(state: AgentState):
 
 def web_search(state: AgentState):
     if state["needs_web"]:
-        web = TavilySearch(max_results=3)
-        results = web.invoke(state['question'])
-        return {"web_results": results}
+        web = TavilySearch(max_results=5)
+        web_results = web.invoke({"query": state['question']})
+        return {"web_results": web_results.get("results")}
     return {"web_results": ""}
 
 
@@ -52,7 +52,14 @@ def generate_answer(state: AgentState):
     context = "\n\n---\n\n".join(context_parts)
 
     if state["web_results"]:
-        context += f"\n\nHasil Pencarian Web:\n{state['web_results']}"
+        web_contents = []
+
+        for result in state['web_results']:
+            web_contents.append(result.get('content',""))
+        
+        formatted_web_results = "\n\n".join(web_contents)
+        context += f"\n\nHasil Pencarian Web:\n{formatted_web_results}"
+        
     full_prompt = get_full_prompt(context, state["question"], state.get("is_evaluate", False))
 
     answer = MODEL.invoke(full_prompt).content
