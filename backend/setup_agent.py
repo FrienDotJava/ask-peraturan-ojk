@@ -9,8 +9,24 @@ load_dotenv()
 
 CONFIG = load_config()
 
-FINAL_RETRIEVER = init_retriever(CONFIG)
-MODEL = init_model(CONFIG["llm"], 0, provider=CONFIG["provider"])
+_retriever = None
+_model = None
+_agent = None
+
+
+def _get_retriever():
+    global _retriever
+    if _retriever is None:
+        _retriever = init_retriever(CONFIG)
+    return _retriever
+
+
+def _get_model():
+    global _model
+    if _model is None:
+        _model = init_model(CONFIG["llm"], 0, provider=CONFIG["provider"])
+    return _model
+
 
 class AgentState(TypedDict):
     question: str
@@ -22,15 +38,15 @@ class AgentState(TypedDict):
 
 
 def retrieve_local(state: AgentState):
-    docs = FINAL_RETRIEVER.invoke(state['question'])
+    docs = _get_retriever().invoke(state['question'])
     return {"retrieved_docs": docs}
 
 
 def grade_documents(state: AgentState):
     doc_contents = [d.page_content for d in state["retrieved_docs"]]
     grade_prompt = get_grade_prompt(state["question"], doc_contents)
-    grade = MODEL.invoke(grade_prompt).content.strip().lower()
-    needs_web = "yes" not in grade # if "yes", no need for web search
+    grade = _get_model().invoke(grade_prompt).content.strip().lower()
+    needs_web = "yes" not in grade
     return {"needs_web": needs_web}
 
 
@@ -52,32 +68,29 @@ def generate_answer(state: AgentState):
     context = "\n\n---\n\n".join(context_parts)
 
     if state["web_results"]:
-        web_contents = []
-        # print(state['web_results'])
-        for result in state['web_results']:
-            # print(type(result))
-            web_contents.append(result.get('content',""))
-        
+        web_contents = [result.get('content', "") for result in state['web_results']]
         formatted_web_results = "\n\n".join(web_contents)
         context += f"\n\nHasil Pencarian Web:\n{formatted_web_results}"
-        
-    full_prompt = get_full_prompt(context, state["question"], state.get("is_evaluate", False))
 
-    answer = MODEL.invoke(full_prompt).content
+    full_prompt = get_full_prompt(context, state["question"], state.get("is_evaluate", False))
+    answer = _get_model().invoke(full_prompt).content
     return {"answer": answer}
 
+
 def get_agent():
-    workflow = StateGraph(AgentState)
-    workflow.add_node("retrieve", retrieve_local)
-    workflow.add_node("grade", grade_documents)
-    workflow.add_node("web_search", web_search)
-    workflow.add_node("generate", generate_answer)
+    global _agent
+    if _agent is None:
+        workflow = StateGraph(AgentState)
+        workflow.add_node("retrieve", retrieve_local)
+        workflow.add_node("grade", grade_documents)
+        workflow.add_node("web_search", web_search)
+        workflow.add_node("generate", generate_answer)
 
-    workflow.set_entry_point("retrieve")
-    workflow.add_edge("retrieve", "grade")
-    workflow.add_edge("grade", "web_search")
-    workflow.add_edge("web_search", "generate")
-    workflow.add_edge("generate", END)
+        workflow.set_entry_point("retrieve")
+        workflow.add_edge("retrieve", "grade")
+        workflow.add_edge("grade", "web_search")
+        workflow.add_edge("web_search", "generate")
+        workflow.add_edge("generate", END)
 
-    agent = workflow.compile()
-    return agent
+        _agent = workflow.compile()
+    return _agent

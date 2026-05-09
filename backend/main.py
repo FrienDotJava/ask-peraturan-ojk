@@ -6,10 +6,18 @@ from dotenv import load_dotenv
 from typing import List, Optional
 from setup_agent import get_agent
 import json
+from contextlib import asynccontextmanager
 
 load_dotenv()
+agent = None
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global agent
+    agent = get_agent()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 cors_origins = [
     "http://localhost:3000",
@@ -38,9 +46,6 @@ class QueryResponse(BaseModel):
     sources: List[Source]
 
 
-agent = get_agent()
-
-
 def build_sources(result: dict) -> List[Source]:
     sources = []
     seen = set()
@@ -64,6 +69,12 @@ def build_sources(result: dict) -> List[Source]:
         ))
 
     return sources
+
+
+@app.on_event("startup")
+async def startup():
+    global agent
+    agent = get_agent()
 
 
 @app.post("/api/query", response_model=QueryResponse)
