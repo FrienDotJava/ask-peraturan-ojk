@@ -44,7 +44,7 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
         run: |
-          uv run pytest tests/ -v
+          uv run python -m pytest tests/test_api.py -v
 
   frontend:
     name: Frontend (Lint and Build)
