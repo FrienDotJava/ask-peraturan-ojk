@@ -50,11 +50,11 @@ def build_sources(result: dict) -> List[Source]:
         if key in seen:
             continue
         seen.add(key)
-        sources.append({
-            "source": doc.metadata.get("source", ""),
-            "title": doc.metadata.get("title", ""),
-            "page": doc.metadata.get("page_label"),
-        })
+        sources.append(Source(
+            source=doc.metadata.get("source", ""),
+            title=doc.metadata.get("title", ""),
+            page=doc.metadata.get("page_label"),
+        ))
 
     for web in result.get("web_results") or []:
         sources.append(Source(
