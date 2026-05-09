@@ -1,6 +1,6 @@
 from langgraph.graph import StateGraph, END
 from langchain_tavily import TavilySearch
-from typing import TypedDict, List
+from typing import TypedDict, List, Dict
 from context import get_grade_prompt, get_full_prompt
 from utils import load_config, init_retriever, init_model
 from dotenv import load_dotenv
@@ -15,7 +15,7 @@ MODEL = init_model(CONFIG["llm"], 0, provider=CONFIG["provider"])
 class AgentState(TypedDict):
     question: str
     retrieved_docs: List
-    web_results: str
+    web_results: List[Dict]
     answer: str
     needs_web: bool
     is_evaluate: bool
@@ -53,8 +53,9 @@ def generate_answer(state: AgentState):
 
     if state["web_results"]:
         web_contents = []
-
+        # print(state['web_results'])
         for result in state['web_results']:
+            # print(type(result))
             web_contents.append(result.get('content',""))
         
         formatted_web_results = "\n\n".join(web_contents)

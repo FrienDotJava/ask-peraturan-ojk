@@ -41,7 +41,7 @@ class QueryResponse(BaseModel):
 agent = get_agent()
 
 
-def build_sources(result: dict) -> List[dict]:
+def build_sources(result: dict) -> List[Source]:
     sources = []
     seen = set()
 
@@ -57,11 +57,11 @@ def build_sources(result: dict) -> List[dict]:
         })
 
     for web in result.get("web_results") or []:
-        sources.append({
-            "source": web.get("url", ""),
-            "title": web.get("title", ""),
-            "page": None,
-        })
+        sources.append(Source(
+            source=web.get("url", ""),
+            title=web.get("title", ""),
+            page=None,
+        ))
 
     return sources
 
