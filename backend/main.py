@@ -84,7 +84,7 @@ async def query_stream(request: Request, body: UserRequest):
         result = request.app.state.agent.invoke({"question": body.question})
         
         sources = build_sources(result)
-        yield f"event: sources\ndata: {json.dumps(sources)}\n\n"
+        yield f"event: sources\ndata: {json.dumps([s.model_dump() for s in sources])}\n\n"
 
         from utils import init_model, load_config
         from context import get_full_prompt
