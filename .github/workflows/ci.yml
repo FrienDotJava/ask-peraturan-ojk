@@ -70,11 +70,11 @@ jobs:
 
       - name: Lint
         working-directory: frontend
-        run: npx run lint
+        run: npm run lint
 
       - name: Build
         working-directory: frontend
-        run: npx run build
+        run: npm run build
 
   docker:
     name: Build Docker Images
