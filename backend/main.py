@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -9,12 +9,10 @@ import json
 from contextlib import asynccontextmanager
 
 load_dotenv()
-agent = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global agent
-    agent = get_agent()
+    app.state.agent = get_agent()
     yield
 
 app = FastAPI(lifespan=lifespan)
@@ -71,22 +69,16 @@ def build_sources(result: dict) -> List[Source]:
     return sources
 
 
-@app.on_event("startup")
-async def startup():
-    global agent
-    agent = get_agent()
-
-
 @app.post("/api/query", response_model=QueryResponse)
-async def query(request: UserRequest):
-    result = agent.invoke({"question": request.question})
+async def query(request: Request, body: UserRequest):
+    result = request.app.state.agent.invoke({"question": body.question})
     return QueryResponse(answer=result['answer'], sources=build_sources(result))
 
 
 @app.post("/api/query/stream")
-async def query_stream(request: UserRequest):
+async def query_stream(request: Request, body: UserRequest):
     async def event_stream():
-        result = agent.invoke({"question": request.question})
+        result = request.app.state.agent.invoke({"question": body.question})
         
         sources = build_sources(result)
         yield f"event: sources\ndata: {json.dumps(sources)}\n\n"
@@ -107,7 +99,7 @@ async def query_stream(request: UserRequest):
         if result.get("web_results"):
             context += f"\n\nHasil Pencarian Web:\n{result['web_results']}"
 
-        full_prompt = get_full_prompt(context, request.question)
+        full_prompt = get_full_prompt(context, body.question)
         print(full_prompt)
         async for chunk in streaming_model.astream(full_prompt):
             token = chunk.content
