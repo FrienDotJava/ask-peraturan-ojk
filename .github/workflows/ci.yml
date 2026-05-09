@@ -30,14 +30,12 @@ jobs:
       - name: Lint with ruff
         working-directory: backend
         run: |
-          uv pip install ruff
-          ruff check .
+          uv run ruff check .
 
       - name: Type check with mypy
         working-directory: backend
         run: |
-          uv pip install mypy
-          mypy main.py setup_agent.py utils.py --ignore-missing-imports
+          uv run mypy main.py setup_agent.py utils.py --ignore-missing-imports
 
       - name: Run tests
         working-directory: backend
@@ -46,8 +44,7 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
         run: |
-          uv pip install pytest pytest-asyncio httpx
-          pytest tests/ -v
+          uv run pytest tests/ -v
 
   frontend:
     name: Frontend (Lint and Build)

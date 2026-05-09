@@ -70,6 +70,8 @@ jobs:
           script: |
             cd /opt/askperaturan
 
+            git pull origin main
+
             docker pull ghcr.io/${{ github.repository_owner }}/askperaturan/backend:latest
             docker pull ghcr.io/${{ github.repository_owner }}/askperaturan/frontend:latest
 
