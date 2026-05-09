@@ -20,9 +20,10 @@ def mock_agent():
         "web_results": None
     }
 
-    with patch("main.agent") as mock:
-        mock.invoke.return_value = mock_result
-        yield mock
+    mock = MagicMock()
+    mock.invoke.return_value = mock_result
+    app.state.agent = mock
+    yield mock
 
 
 @pytest.mark.asyncio
@@ -70,12 +71,14 @@ async def test_sources_include_web_when_fallback():
         "web_results": [{"url": "https://ojk.go.id", "title": "OJK Website"}]
     }
 
-    with patch("main.agent") as mock:
-        mock.invoke.return_value = mock_result
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
-            res = await client.post("/api/query", json={"question": "test"})
+    mock = MagicMock()
+    mock.invoke.return_value = mock_result
+    app.state.agent = mock
+    
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        res = await client.post("/api/query", json={"question": "test"})
 
     data = res.json()
     sources = data["sources"]
