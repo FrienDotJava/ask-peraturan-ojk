@@ -4,8 +4,8 @@ services:
     restart: always
     env_file: .env.prod
     volumes:
-      - chroma_data:/app/chroma_db
-      - ./docs:/app/docs
+      - chroma_data:/app/chroma
+      - ./backend/docs:/app/docs
     expose:
       - "8000"
 

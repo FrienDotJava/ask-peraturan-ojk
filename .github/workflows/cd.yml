@@ -83,7 +83,7 @@ jobs:
 
             if git diff --name-only HEAD~1 HEAD | grep -q "^backend/docs/"; then
               echo "Docs changed, re-indexing..."
-              docker compose -f docker-compose.prod.yml run --rm backend python ingest.py
+              docker compose -f docker-compose.prod.yml run --rm backend uv run ingest.py
             fi
 
             docker compose -f docker-compose.prod.yml up -d --no-deps backend
