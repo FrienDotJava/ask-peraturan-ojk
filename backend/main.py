@@ -90,7 +90,7 @@ async def query_stream(request: Request, body: UserRequest):
         from context import get_full_prompt
 
         config = load_config()
-        streaming_model = init_model(config["llm"], 0)
+        streaming_model = init_model(config["llm"], 0, config["provider"])
 
         context_parts = []
         for doc in result["retrieved_docs"]:
