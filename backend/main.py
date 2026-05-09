@@ -102,8 +102,8 @@ async def query_stream(request: Request, body: UserRequest):
         if result.get("web_results"):
             context += f"\n\nHasil Pencarian Web:\n{result['web_results']}"
 
-        full_prompt = get_full_prompt(context, body.question)
-        print(full_prompt)
+        full_prompt = get_full_prompt(context, body.question, False)
+        # print(full_prompt)
         async for chunk in streaming_model.astream(full_prompt):
             token = chunk.content
             if token:
