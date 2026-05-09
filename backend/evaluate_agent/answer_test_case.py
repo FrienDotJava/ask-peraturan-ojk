@@ -2,7 +2,7 @@ from setup_agent import get_agent
 import json
 import time
 
-test_cases = [
+TEST_CASES = [
     {
         "question": "Apa yang dimaksud dengan Penjaminan menurut peraturan OJK?",
         "ground_truth": "Penjaminan adalah kegiatan pemberian jaminan atas pemenuhan kewajiban finansial Terjamin."
@@ -105,42 +105,49 @@ test_cases = [
     }
 ]
 
-agent = get_agent()
 
-questions = []
-answers = []
-contexts = []
-ground_truths = []
+def save_data(questions, answers, contexts, ground_truths):
+    data = {
+        "user_input": questions,
+        "response": answers,
+        "retrieved_contexts": contexts,
+        "reference": ground_truths
+    }
+    with open('test_cases.json', 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=4)
 
-for case in test_cases:
-    retries = 3
-    while retries > 0:
-        try:
-            print(f"Running: {case['question']}")
-            result = agent.invoke({"question": case["question"], "is_evaluate": True})
 
-            questions.append(case["question"])
-            answers.append(result["answer"])
-            contexts.append([doc.page_content for doc in result["retrieved_docs"]])
-            ground_truths.append(case["ground_truth"])
+def main():
+    agent = get_agent()
 
-            print(f"\tAnswer: {result['answer']}")
-            break
-        except Exception as e:
-            if "429" in e:
-                print("Rate limit hit, sleeping longer...")
-                time.sleep(60)
-                retries -= 1
-            else:
-                raise e
+    questions = []
+    answers = []
+    contexts = []
+    ground_truths = []
 
-    time.sleep(40)
+    for case in TEST_CASES:
+        retries = 3
+        while retries > 0:
+            try:
+                print(f"Running: {case['question']}")
+                result = agent.invoke({"question": case["question"], "is_evaluate": True})
 
-data = {
-    "user_input": questions,
-    "response": answers,
-    "retrieved_contexts": contexts,
-    "reference": ground_truths
-}
-with open('test_cases.json', 'w', encoding='utf-8') as f:
-    json.dump(data, f, indent=4)
+                questions.append(case["question"])
+                answers.append(result["answer"])
+                contexts.append([doc.page_content for doc in result["retrieved_docs"]])
+                ground_truths.append(case["ground_truth"])
+
+                print(f"\tAnswer: {result['answer']}")
+                break
+            except Exception as e:
+                if "429" in e:
+                    print("Rate limit hit, sleeping longer...")
+                    time.sleep(60)
+                    retries -= 1
+                else:
+                    raise e
+
+        time.sleep(40)
+
+    save_data(questions, answers, contexts, ground_truths)
+    

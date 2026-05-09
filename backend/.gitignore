@@ -13,3 +13,5 @@ wheels/
 test.py
 test.ipynb
 test_set_generator.py
+testing_agent.py
+model_testing.py
