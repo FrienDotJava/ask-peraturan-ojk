@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ask-peraturan-ojk-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false

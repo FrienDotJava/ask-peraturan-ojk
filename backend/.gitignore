@@ -8,7 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
-/chroma
 .env
 test.py
 test.ipynb

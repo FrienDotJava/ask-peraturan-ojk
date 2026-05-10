@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
 RUN pip install uv
 
 COPY pyproject.toml uv.lock ./
+COPY chroma/ /app/chroma/
 RUN uv sync --frozen
 
 COPY . .
