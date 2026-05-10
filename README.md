@@ -164,7 +164,7 @@ GROQ_API_KEY=your_key_here  # used during ingestion only
 
 **3. Add OJK documents**
 
-Place POJK PDF files in `backend/docs/`. You can download them from [ojk.go.id](https://www.ojk.go.id/id/regulasi/Pages/POJK.aspx).
+Place POJK PDF files in `backend/docs/`. You can download them from [ojk.go.id](https://ojk.go.id/id/regulasi/otoritas-jasa-keuangan/peraturan-ojk/default.aspx).
 
 **4. Run ingestion**
 
