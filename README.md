@@ -71,7 +71,7 @@ BM25 handles exact keyword matches like regulation numbers ("POJK 77/2016", "Pas
 
 **2. Cross-Encoder Reranking**
 
-The merged results are reranked by a cross-encoder model (`rerank-multilingual-v3.0 (Cohere)`) which scores each chunk against the query directly. The top 3 chunks are passed to generation.
+The merged results are reranked by a cross-encoder model (Cohere's `rerank-multilingual-v3.0`) which scores each chunk against the query directly. The top 3 chunks are passed to generation.
 
 **3. Agentic Web Fallback**
 
@@ -85,7 +85,7 @@ Source documents are OJK POJK PDFs from the official OJK website. During ingesti
 
 - Each document's first page is processed by an LLM to extract a clean, structured title (regulation number, year, topic)
 - Documents are split using legal-aware separators that respect Indonesian regulatory structure: `BAB`, `Bagian`, `Pasal`, and `Ayat` boundaries
-- Chunks are embedded using `intfloat/multilingual-e5-large`, a multilingual model that handles Bahasa Indonesia accurately
+- Chunks are embedded using Cohere's `embed-multilingual-v3.0`, a multilingual model that handles Bahasa Indonesia accurately
 
 ---
 
