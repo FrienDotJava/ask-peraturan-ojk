@@ -1,12 +1,13 @@
 from pathlib import Path
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_cohere import CohereEmbeddings
 from langchain_chroma import Chroma
 from pydantic import BaseModel, Field
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 import time
+from utils import load_config
 
 load_dotenv()
 
@@ -75,7 +76,8 @@ splitter = RecursiveCharacterTextSplitter(
 print("Splitting..")
 chunks = splitter.split_documents(docs)
 
-embeddings = HuggingFaceEmbeddings(model_name="intfloat/multilingual-e5-large")
+config = load_config()
+embeddings = CohereEmbeddings(model=config['embedding_model'])
 
 vector_store = Chroma.from_documents(
     chunks,

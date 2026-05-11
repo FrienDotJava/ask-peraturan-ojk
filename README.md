@@ -159,6 +159,7 @@ Add your API keys to `backend/.env`:
 ```
 MISTRAL_API_KEY=your_key_here
 TAVILY_API_KEY=your_key_here
+COHERE_API_KEY=your_key_here
 GROQ_API_KEY=your_key_here  # used during ingestion only
 ```
 
@@ -169,7 +170,7 @@ Place POJK PDF files in `backend/docs/`. You can download them from [ojk.go.id](
 **4. Run ingestion**
 
 ```bash
-docker compose run --rm backend python ingest.py
+docker compose run --rm backend uv run ingest.py
 ```
 
 **5. Start the application**

@@ -8,7 +8,7 @@ from ragas.metrics import (
 )
 from ragas.llms import LangchainLLMWrapper
 from ragas.embeddings import LangchainEmbeddingsWrapper
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_cohere import CohereEmbeddings
 from utils import init_model, load_config
 import json
 from ragas.run_config import RunConfig
@@ -27,7 +27,7 @@ def main():
     config = load_config()
     llm = init_model(model=config['llm'], temp=0, provider=config['provider'])
 
-    embeddings = HuggingFaceEmbeddings(model="intfloat/multilingual-e5-large")
+    embeddings = CohereEmbeddings(model=config['embedding_model'])
 
     ragas_llm = LangchainLLMWrapper(llm)
     ragas_embeddings = LangchainEmbeddingsWrapper(embeddings)
