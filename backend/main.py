@@ -19,10 +19,10 @@ app = FastAPI(lifespan=lifespan)
 
 cors_origins = [
     "http://localhost:3000",
-    "http://frontend:3000"
+    "http://frontend:3000",
     "http://74.113.234.157",
     "http://74.113.234.157:3000",
-    "http://74.113.234.157:80"
+    "https://ask-peraturan-ojk.vercel.app"
 ]
 
 app.add_middleware(

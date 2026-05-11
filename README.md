@@ -50,9 +50,9 @@ The pipeline is orchestrated with LangGraph as an agentic workflow. Each step is
 | Backend | FastAPI |
 | Orchestration | LangChain + LangGraph |
 | LLM | Mistral Medium 3 |
-| Embeddings | intfloat/multilingual-e5-large |
+| Embeddings | Cohere embed-multilingual-v3.0 |
 | Vector Store | ChromaDB |
-| Retrieval | BM25 + Semantic (Ensemble) + Cross-Encoder Reranker |
+| Retrieval | BM25 + Semantic (Ensemble) + Cross Encoder Reranker |
 | Web Fallback | Tavily Search |
 | Evaluation | RAGAS |
 | Containerization | Docker + Docker Compose |
@@ -71,7 +71,7 @@ BM25 handles exact keyword matches like regulation numbers ("POJK 77/2016", "Pas
 
 **2. Cross-Encoder Reranking**
 
-The merged results are reranked by a cross-encoder model (`cross-encoder/ms-marco-MiniLM-L-6-v2`) which scores each chunk against the query directly. The top 3 chunks are passed to generation.
+The merged results are reranked by a cross-encoder model (`rerank-multilingual-v3.0 (Cohere)`) which scores each chunk against the query directly. The top 3 chunks are passed to generation.
 
 **3. Agentic Web Fallback**
 
