@@ -4,7 +4,10 @@ A RAG (Retrieval-Augmented Generation) application that answers questions about 
 
 ## Demo
 
-> Live demo coming soon after deployment migration to Vercel + Render.
+| Application | URL | Type |
+|------------|-----|------|
+| **API** | [ask-peraturan-ojk-backend.onrender.com](https://ask-peraturan-ojk-backend.onrender.com) | FastAPI |
+| **Model Inference App** | [ask-peraturan-ojk.vercel.app](https://ask-peraturan-ojk.vercel.app/) | Next.js |
 
 ---
 
@@ -207,7 +210,7 @@ Every merge to `main` triggers the CD workflow:
 
 Currently deployed on a VPS with Nginx as a reverse proxy. Nginx is configured with `proxy_buffering off` to support Server-Sent Events for streaming responses.
 
-Migrating to Vercel (frontend) + Render (backend) for a permanent free-tier deployment.
+Migrated to Vercel (frontend) + Render (backend) for a permanent free-tier deployment.
 
 ---
 
